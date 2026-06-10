@@ -12,6 +12,8 @@
 | 1 | Two Sum | 哈希表 | A | — | — | — |
 | 215 | 数组中的第K个最大元素 | 快速选择 / 堆 | B | ① partition 双指针逻辑不熟（不会正确移动 i/j）<br>② 递归方向判断不清（pivot 位置与目标索引的关系混淆） | ① j++ 写成了 j--，导致死循环<br>② 文件放到了 src/test 目录（应放 src/main）<br>③ 类名 LC215_findKthLargest 首字母应大写<br>④ 包名 com.leetcode.solution 少了个 s<br>⑤ 多余成员变量 index，直接 return 即可 | 2026-06-09 |
 | 236 | 二叉树的最近公共祖先 | 二叉树 DFS / 后序递归 | B | ① 思路正确（路径比较法），但对 DFS 回溯不熟，search 方法没写出来<br>② 不知道用什么数据结构存储路径（后经提示用 Deque）<br>③ 没有自己想到后序递归解法（左右子树都找到 → 当前节点就是 LCA） | ① Deque 泛型参数写错：`Deque<Integer>` 应为 `Deque<TreeNode>`<br>② 解题代码写在 Solution.java 模板中，未新建类 | 2026-06-09 |
+| 102 | 二叉树的层序遍历 | BFS / 队列 | B | ① BFS 层序遍历思路正确，但不知道 BFS 如何按层分组（levelSize 技巧）<br>② Queue 是接口而非类，不清楚需要用什么实现类实例化 | ① `new Queue<>()` 编译错误，应为 `new LinkedList<>()`<br>② `res.add(temp.val)` 类型不匹配，`res` 是 `List<List<Integer>>`，不能直接 add Integer<br>③ 缺少 `import com.leetcode.common.TreeNode`<br>④ 解题代码写在 Solution.java 模板中，未新建类 | 2026-06-09 |
+| 200 | 岛屿数量 | DFS / 沉岛法 | B | ① DFS 沉岛思路正确，但 char 与 int 比较混淆（`grid[i][j] == 1`）<br>② 边界检查放在调用前不够健壮 | ① `'1'` 是字符，不能写成数字 `1`，导致永远不成立<br>② 解题代码写在 Solution.java 模板中，未新建类 | 2026-06-09 |
 | | | | | | | |
 | | | | | | | |
 | | | | | | | |
