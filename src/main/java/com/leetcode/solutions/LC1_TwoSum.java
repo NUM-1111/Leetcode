@@ -1,25 +1,30 @@
 package com.leetcode.solutions;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
- * 1. Two Sum
- * <p>
- * 给定一个整数数组 nums 和一个整数目标值 target，
- * 请你在该数组中找出和为目标值的那两个整数，并返回它们的数组下标。
- * 假设每种输入只会对应一个答案，且同一个元素不能使用两遍。
- * <p>
- * 时间复杂度 O(n) 空间复杂度 O(n)
+ * LC1 - 两数之和
+ * 
+ * 核心知识点：HashMap 查补数
+ * 
+ * 思路：一遍遍历，用 HashMap 记录「值 → 下标」。
+ * 对每个数，看 target - num 是否已在 map 中，在则返回两个下标。
+ * 
+ * 时间复杂度：O(n)
+ * 空间复杂度：O(n)
  */
 public class LC1_TwoSum {
-
     public int[] twoSum(int[] nums, int target) {
-        java.util.Map<Integer, Integer> map = new java.util.HashMap<>();
+        Map<Integer, Integer> map = new HashMap<>();
+
         for (int i = 0; i < nums.length; i++) {
-            int complement = target - nums[i];
-            if (map.containsKey(complement)) {
-                return new int[]{map.get(complement), i};
+            if (map.containsKey(target - nums[i])) {
+                return new int[] { i, map.get(target - nums[i]) };
             }
             map.put(nums[i], i);
         }
-        return new int[]{-1, -1};
+
+        return null;
     }
 }

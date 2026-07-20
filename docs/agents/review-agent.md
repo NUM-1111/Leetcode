@@ -33,6 +33,10 @@
         ▼
 Agent 做评级分析（A / B / C）
         │
+        ├── ⚠️ 强制步骤：若认为代码有 bug，必须拿至少 1 个具体输入用例
+        │    手动模拟代码执行，确认确实会产生错误结果，才能写入"大问题"
+        │    （禁止仅靠"看起来不对"下结论）
+        │
         ├── 把正确的题解写入 → src/main/java/com/leetcode/solutions/LC{题号}_{题目名}.java
         │
         ├── 把问题记录写入 → docs/review-checklist.md（同步更新）
