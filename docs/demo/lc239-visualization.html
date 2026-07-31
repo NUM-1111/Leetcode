@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LC239 滑动窗口最大值 — 可视化演示</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', 'PingFang SC', sans-serif; background: #f0f2f5; padding: 20px; color: #333; }
+        .container { max-width: 900px; margin: 0 auto; background: white; border-radius: 12px; padding: 30px; box-shadow: 0 2px 12px rgba(0,0,0,0.1); }
+        h1 { font-size: 24px; margin-bottom: 8px; color: #1a1a2e; }
+        .subtitle { color: #666; font-size: 14px; margin-bottom: 20px; }
+        .formula-box { background: #e8f4f8; border: 1px solid #4cc9f0; border-radius: 8px; padding: 14px 18px; margin-bottom: 20px; font-size: 14px; line-height: 1.7; }
+        .formula-box .hl { color: #d63384; font-weight: bold; }
+        .controls { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; align-items: center; }
+        .controls label { font-weight: 600; font-size: 14px; }
+        .controls input { padding: 6px 10px; border: 2px solid #ddd; border-radius: 6px; font-size: 14px; font-family: monospace; width: 200px; }
+        .controls input:focus { border-color: #4361ee; outline: none; }
+        .controls button { padding: 8px 20px; border: none; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; }
+        .btn-primary { background: #4361ee; color: white; }
+        .btn-primary:hover { background: #3a56d4; }
+        .btn-success { background: #2d6a4f; color: white; }
+        .step-nav { display: flex; gap: 8px; align-items: center; margin-bottom: 16px; }
+        .step-nav button { padding: 6px 16px; border: 2px solid #4361ee; border-radius: 6px; background: white; color: #4361ee; font-weight: 600; cursor: pointer; }
+        .step-nav button:hover { background: #4361ee; color: white; }
+        .step-nav button:disabled { opacity: 0.4; cursor: not-allowed; }
+        .step-nav .info { font-size: 14px; color: #666; margin-left: 12px; }
+        .main-area { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+        @media (max-width:700px) { .main-area { grid-template-columns: 1fr; } }
+        .panel { border: 2px solid #e9ecef; border-radius: 10px; padding: 16px; min-height: 200px; }
+        .panel h3 { font-size: 13px; color: #666; margin-bottom: 12px; letter-spacing: 1px; }
+        .array-row { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 10px; position: relative; }
+        .cell { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border: 2px solid #dee2e6; border-radius: 6px; font-size: 16px; font-weight: 700; font-family: monospace; position: relative; transition: all 0.3s; }
+        .cell .idx { position: absolute; top: -18px; font-size: 10px; color: #999; font-weight: 400; }
+        .cell.in-window { border-color: #4361ee; background: #eef0ff; }
+        .cell.current { border-color: #e63946; background: #ffe5e5; transform: scale(1.08); }
+        .cell.max { border-color: #2d6a4f; background: #d8f3dc; }
+        .cell.popped { border-color: #e63946; background: #ffe5e5; opacity: 0.5; }
+        .window-bracket { display: flex; gap: 4px; margin: 8px 0; }
+        .window-cell { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 5px; font-size: 14px; font-weight: 700; font-family: monospace; background: #eef0ff; border: 2px solid #4361ee; }
+        .window-cell.max-cell { background: #d8f3dc; border-color: #2d6a4f; }
+        .deque-display { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+        .deque-label { font-size: 14px; color: #666; margin-bottom: 8px; }
+        .dq-box { display: flex; gap: 4px; align-items: center; }
+        .dq-item { padding: 8px 14px; border-radius: 6px; font-size: 15px; font-weight: 700; font-family: monospace; border: 2px solid #4361ee; background: white; position: relative; }
+        .dq-item.head { background: #d8f3dc; border-color: #2d6a4f; }
+        .dq-item.head::after { content: ' ← max'; position: absolute; right: -50px; top: 6px; font-size: 12px; color: #2d6a4f; font-weight: 600; }
+        .dq-item.removed { background: #ffe5e5; border-color: #e63946; opacity: 0.5; text-decoration: line-through; }
+        .dq-item .sub { font-size: 10px; color: #999; display: block; text-align: center; }
+        .dq-arrow { font-size: 18px; color: #999; }
+        .explanation { background: #f8f9fa; border-left: 4px solid #4361ee; padding: 14px 18px; border-radius: 0 8px 8px 0; font-size: 14px; line-height: 1.7; min-height: 50px; }
+        .result-display { margin-top: 10px; display: flex; gap: 6px; flex-wrap: wrap; }
+        .result-box { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 6px; font-size: 16px; font-weight: 700; font-family: monospace; background: #fef3c7; border: 2px solid #f59e0b; }
+        .legend { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 12px; font-size: 12px; color: #666; }
+        .legend-item { display: flex; align-items: center; gap: 6px; }
+        .legend-item .box { width: 16px; height: 16px; border-radius: 4px; border: 2px solid; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>📊 LC239 — 滑动窗口最大值</h1>
+    <p class="subtitle">单调队列（Deque）可视化 | 每一步看 Deque 如何维护最大值</p>
+
+    <div class="formula-box">
+        <strong>核心思想：单调递减队列</strong><br>
+        Deque 存的是<strong>下标</strong>，不是值。始终保持 <span class="hl">队首 > 队尾 > ... > 队尾</span>。<br>
+        每步做 3 件事：
+        <b>①清理队尾</b>（比当前小的永远没机会了）→ <b>②入队</b> → <b>③清理队首</b>（滑出窗口的作废）
+    </div>
+
+    <div class="controls">
+        <label>nums:</label>
+        <input id="inputNums" value="1,3,-1,-3,5,3,6,7" />
+        <label>k:</label>
+        <input id="inputK" value="3" style="width:50px" />
+        <button class="btn-primary" onclick="reset()">🔄 运行</button>
+        <button class="btn-success" onclick="runPreset()">▶ 预设</button>
+    </div>
+
+    <div class="step-nav">
+        <button id="btnPrev" onclick="prev()">← 上一步</button>
+        <button id="btnNext" onclick="next()">下一步 →</button>
+        <span class="info" id="stepInfo">步骤 0 / 0</span>
+    </div>
+
+    <div class="main-area">
+        <div class="panel">
+            <h3>📦 数组 & 窗口</h3>
+            <div id="arrayDisplay" class="array-row"></div>
+            <div id="windowDisplay"></div>
+            <div id="resultDisplay"></div>
+        </div>
+        <div class="panel">
+            <h3>🗂️ Deque（单调递减队列）</h3>
+            <div id="dequeDisplay"></div>
+            <div id="actionDisplay" style="margin-top:8px;font-size:13px;color:#e63946;"></div>
+        </div>
+    </div>
+
+    <div class="explanation" id="explanation">👆 点击「下一步」开始</div>
+
+    <div class="legend">
+        <span class="legend-item"><span class="box" style="border-color:#e63946;background:#ffe5e5"></span> 当前处理</span>
+        <span class="legend-item"><span class="box" style="border-color:#4361ee;background:#eef0ff"></span> 在窗口中</span>
+        <span class="legend-item"><span class="box" style="border-color:#2d6a4f;background:#d8f3dc"></span> 当前最大值</span>
+        <span class="legend-item"><span class="box" style="border-color:#f59e0b;background:#fef3c7"></span> 结果</span>
+    </div>
+</div>
+
+<script>
+    let nums = [1,3,-1,-3,5,3,6,7];
+    let k = 3;
+    let steps = [];
+    let cur = 0;
+
+    function generateSteps(nums, k) {
+        const steps = [];
+        let deque = []; // 存下标
+
+        // 初始
+        steps.push({
+            type: 'init',
+            deque: [...deque],
+            i: -1,
+            action: '初始化，Deque 为空',
+            result: [],
+        });
+
+        for (let i = 0; i < nums.length; i++) {
+            // --- 步骤 A: 清理队尾 ---
+            let popTailVals = [];
+            while (deque.length > 0 && nums[deque[deque.length-1]] < nums[i]) {
+                popTailVals.push(deque.pop());
+            }
+            if (popTailVals.length > 0) {
+                steps.push({
+                    type: 'popTail',
+                    i: i,
+                    deque: [...deque],
+                    action: `弹出队尾 [${popTailVals.join(',')}]（值 = ${popTailVals.map(idx=>nums[idx]).join(',')} < ${nums[i]}）`,
+                    result: steps.length > 0 ? steps[steps.length-1].result : []
+                });
+            }
+
+            // --- 步骤 B: 入队 ---
+            deque.push(i);
+            steps.push({
+                type: 'push',
+                i: i,
+                deque: [...deque],
+                action: `入队 [${i}]（值 = ${nums[i]}）`,
+                result: steps.length > 0 ? steps[steps.length-1].result : []
+            });
+
+            // --- 步骤 C: 清理队首 ---
+            let popHeadVal = null;
+            while (deque.length > 0 && deque[0] <= i - k) {
+                popHeadVal = deque.shift();
+            }
+            if (popHeadVal !== null) {
+                steps.push({
+                    type: 'popHead',
+                    i: i,
+                    deque: [...deque],
+                    action: `弹出队首 [${popHeadVal}]（已滑出窗口）`,
+                    result: steps.length > 0 ? steps[steps.length-1].result : []
+                });
+            }
+
+            // --- 步骤 D: 记录结果 ---
+            let result = steps.length > 0 ? [...steps[steps.length-1].result] : [];
+            if (i >= k - 1) {
+                result.push(nums[deque[0]]);
+                steps.push({
+                    type: 'record',
+                    i: i,
+                    deque: [...deque],
+                    maxVal: nums[deque[0]],
+                    action: `窗口 [${i-k+1}..${i}] 的最大值 = ${nums[deque[0]]}`,
+                    result: result
+                });
+            }
+        }
+
+        steps.push({
+            type: 'done',
+            deque: [],
+            action: '遍历完成',
+            result: steps[steps.length-1].result
+        });
+
+        return steps;
+    }
+
+    function render(stepIdx) {
+        const step = steps[stepIdx];
+        if (!step) return;
+        document.getElementById('stepInfo').textContent = `步骤 ${stepIdx} / ${steps.length-1}`;
+        document.getElementById('btnPrev').disabled = stepIdx === 0;
+        document.getElementById('btnNext').disabled = stepIdx === steps.length-1;
+
+        renderArray(step);
+        renderWindow(step);
+        renderResult(step);
+        renderDeque(step);
+        renderExplanation(step);
+    }
+
+    function renderArray(step) {
+        const el = document.getElementById('arrayDisplay');
+        el.innerHTML = '';
+        nums.forEach((val, idx) => {
+            const cell = document.createElement('div');
+            cell.className = 'cell';
+            const label = document.createElement('div');
+            label.className = 'idx';
+            label.textContent = idx;
+            cell.appendChild(label);
+            cell.appendChild(document.createTextNode(val));
+
+            if (step.i === idx) cell.classList.add('current');
+            else if (step.i >= 0 && idx <= step.i && idx > step.i - k) cell.classList.add('in-window');
+            else if (step.i >= 0 && idx <= step.i - k) cell.style.opacity = '0.3';
+
+            if (step.type === 'record' && step.maxVal !== undefined && val === step.maxVal && idx >= step.i - k + 1 && idx <= step.i) {
+                cell.classList.add('max');
+            }
+
+            el.appendChild(cell);
+        });
+    }
+
+    function renderWindow(step) {
+        const el = document.getElementById('windowDisplay');
+        el.innerHTML = '';
+        if (step.i < 0) { el.innerHTML = '<div style="color:#999;font-size:13px">等待开始...</div>'; return; }
+        if (step.i < k - 1 && step.type !== 'done') {
+            el.innerHTML = `<div style="color:#999;font-size:13px">窗口未满（i=${step.i}，需要 i >= ${k-1}）</div>`;
+            return;
+        }
+        if (step.type === 'done') { el.innerHTML = ''; return; }
+
+        // 显示当前窗口
+        const winStart = step.i - k + 1;
+        const winEnd = step.i;
+        const title = document.createElement('div');
+        title.style.cssText = 'font-size:13px;color:#666;margin-bottom:6px;';
+        title.textContent = `窗口 [${winStart}..${winEnd}]：`;
+        el.appendChild(title);
+
+        const row = document.createElement('div');
+        row.className = 'window-bracket';
+        for (let i = winStart; i <= winEnd; i++) {
+            const cell = document.createElement('div');
+            cell.className = 'window-cell';
+            cell.textContent = nums[i];
+            if (step.type === 'record' && step.maxVal !== undefined && nums[i] === step.maxVal) {
+                cell.classList.add('max-cell');
+            }
+            row.appendChild(cell);
+        }
+        el.appendChild(row);
+    }
+
+    function renderResult(step) {
+        const el = document.getElementById('resultDisplay');
+        el.innerHTML = '';
+        if (step.result.length === 0) { el.innerHTML = '<div style="color:#999;font-size:13px">结果：[]</div>'; return; }
+        const title = document.createElement('div');
+        title.style.cssText = 'font-size:13px;color:#666;margin-bottom:6px;';
+        title.textContent = '结果：';
+        el.appendChild(title);
+        const row = document.createElement('div');
+        row.className = 'result-display';
+        step.result.forEach(v => {
+            const box = document.createElement('div');
+            box.className = 'result-box';
+            box.textContent = v;
+            row.appendChild(box);
+        });
+        el.appendChild(row);
+    }
+
+    function renderDeque(step) {
+        const el = document.getElementById('dequeDisplay');
+        const actionEl = document.getElementById('actionDisplay');
+        el.innerHTML = '';
+        actionEl.textContent = step.action || '';
+
+        if (step.deque.length === 0) {
+            el.innerHTML = '<div style="color:#999;padding:8px">(空队列)</div>';
+            return;
+        }
+
+        const dqLabel = document.createElement('div');
+        dqLabel.className = 'deque-label';
+        dqLabel.textContent = '队首 (max) → ';
+        el.appendChild(dqLabel);
+
+        const dqBox = document.createElement('div');
+        dqBox.className = 'dq-box';
+        step.deque.forEach((idx, pos) => {
+            if (pos > 0) {
+                const arrow = document.createElement('span');
+                arrow.className = 'dq-arrow';
+                arrow.textContent = '→';
+                dqBox.appendChild(arrow);
+            }
+            const item = document.createElement('div');
+            item.className = 'dq-item';
+            if (pos === 0) item.classList.add('head');
+            item.innerHTML = `<span>${nums[idx]}</span><span class="sub">[${idx}]</span>`;
+            dqBox.appendChild(item);
+        });
+        el.appendChild(dqBox);
+    }
+
+    function renderExplanation(step) {
+        const el = document.getElementById('explanation');
+        if (step.type === 'init') {
+            el.innerHTML = `<strong>初始化</strong><br>Deque 为空，准备遍历数组。`;
+        } else if (step.type === 'popTail') {
+            el.innerHTML = `<strong>⚠️ 清理队尾</strong><br>${step.action}<br>说明：这些元素比当前 ${nums[step.i]} 小，在后面窗口中永远不可能成为最大值，直接丢弃。`;
+        } else if (step.type === 'push') {
+            el.innerHTML = `<strong>⬅️ 入队</strong><br>${step.action}<br>当前 Deque：${step.deque.map(i=>`${nums[i]}[${i}]`).join(' → ')}`;
+        } else if (step.type === 'popHead') {
+            el.innerHTML = `<strong>⚠️ 清理队首</strong><br>${step.action}<br>说明：这个元素下标已经滑出窗口了（下标 ≤ ${step.i - k}），作废。`;
+        } else if (step.type === 'record') {
+            el.innerHTML = `<strong>✅ 记录结果</strong><br>${step.action}<br>Deque 队首始终是当前窗口的最大值（因为队列单调递减）。`;
+        } else if (step.type === 'done') {
+            el.innerHTML = `<strong>🎉 完成！</strong><br>最终结果：${JSON.stringify(step.result)}`;
+        }
+    }
+
+    function next() { if (cur < steps.length-1) { cur++; render(cur); } }
+    function prev() { if (cur > 0) { cur--; render(cur); } }
+
+    function reset() {
+        const s = document.getElementById('inputNums').value;
+        const kv = document.getElementById('inputK').value;
+        nums = s.split(',').map(v => parseInt(v.trim()));
+        k = parseInt(kv);
+        if (nums.some(isNaN) || isNaN(k)) { alert('输入无效'); return; }
+        steps = generateSteps(nums, k);
+        cur = 0;
+        render(cur);
+    }
+
+    function runPreset() {
+        const presets = [
+            { nums: [1,3,-1,-3,5,3,6,7], k: 3 },
+            { nums: [5,4,3,2,1], k: 3 },
+            { nums: [1,2,3,4,5], k: 3 },
+            { nums: [7,6,5,4,3,2,1], k: 3 },
+        ];
+        const p = presets[Math.floor(Math.random()*presets.length)];
+        document.getElementById('inputNums').value = p.nums.join(',');
+        document.getElementById('inputK').value = p.k;
+        reset();
+    }
+
+    document.addEventListener('keydown', e => {
+        if (e.key === 'ArrowRight') next();
+        if (e.key === 'ArrowLeft') prev();
+    });
+
+    reset();
+</script>
+</body>
+</html>

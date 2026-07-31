@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LC560 和为 K 的子数组 — 可视化演示</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: #f0f2f5;
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+        }
+        h1 {
+            font-size: 24px;
+            margin-bottom: 8px;
+            color: #1a1a2e;
+        }
+        .subtitle {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+        .formula-box {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 8px;
+            padding: 14px 18px;
+            margin-bottom: 24px;
+            font-size: 15px;
+            line-height: 1.7;
+        }
+        .formula-box code {
+            background: #fff8e1;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 16px;
+        }
+        .formula-box .highlight {
+            color: #d63384;
+            font-weight: bold;
+        }
+        .controls {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+        .controls label {
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .controls input {
+            padding: 6px 10px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            width: 160px;
+            font-family: monospace;
+        }
+        .controls input:focus {
+            border-color: #4361ee;
+            outline: none;
+        }
+        .controls button {
+            padding: 8px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-primary {
+            background: #4361ee;
+            color: white;
+        }
+        .btn-primary:hover { background: #3a56d4; }
+        .btn-secondary {
+            background: #e9ecef;
+            color: #333;
+        }
+        .btn-secondary:hover { background: #dee2e6; }
+        .btn-success {
+            background: #2d6a4f;
+            color: white;
+        }
+        .btn-success:hover { background: #1b4332; }
+        .step-nav {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .step-nav button {
+            padding: 6px 16px;
+            border: 2px solid #4361ee;
+            border-radius: 6px;
+            background: white;
+            color: #4361ee;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .step-nav button:hover { background: #4361ee; color: white; }
+        .step-nav button:disabled { opacity: 0.4; cursor: not-allowed; }
+        .step-nav .step-info {
+            font-size: 14px;
+            color: #666;
+            margin-left: 12px;
+        }
+        .visual-area {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        @media (max-width: 700px) {
+            .visual-area { grid-template-columns: 1fr; }
+        }
+        .panel {
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 16px;
+            min-height: 200px;
+        }
+        .panel h3 {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .array-display {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .array-cell {
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 700;
+            font-family: monospace;
+            position: relative;
+            transition: all 0.3s;
+        }
+        .array-cell.active {
+            border-color: #4361ee;
+            background: #eef0ff;
+            transform: scale(1.05);
+        }
+        .array-cell.current {
+            border-color: #e63946;
+            background: #ffe5e5;
+        }
+        .array-cell.found {
+            border-color: #2d6a4f;
+            background: #d8f3dc;
+        }
+        .array-cell .index-label {
+            position: absolute;
+            top: -20px;
+            font-size: 11px;
+            color: #999;
+            font-weight: 400;
+        }
+        .array-cell .arrow {
+            position: absolute;
+            bottom: -22px;
+            font-size: 12px;
+            color: #e63946;
+            font-weight: bold;
+        }
+        .prefix-bar {
+            margin-top: 12px;
+        }
+        .prefix-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 4px;
+            font-size: 13px;
+        }
+        .prefix-row .label {
+            min-width: 80px;
+            color: #666;
+        }
+        .prefix-row .value {
+            font-weight: 700;
+            font-family: monospace;
+            font-size: 16px;
+        }
+        .prefix-row .bar-bg {
+            flex: 1;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .prefix-row .bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4361ee, #7209b7);
+            border-radius: 4px;
+            transition: width 0.3s;
+        }
+        .map-display {
+            font-family: monospace;
+        }
+        .map-entry {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 10px;
+            border-radius: 6px;
+            margin-bottom: 4px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        .map-entry.highlight {
+            background: #d8f3dc;
+            font-weight: bold;
+        }
+        .map-entry .key {
+            background: #4361ee;
+            color: white;
+            padding: 2px 10px;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+        .map-entry .val {
+            color: #e63946;
+            font-weight: 700;
+        }
+        .map-entry .meaning {
+            color: #666;
+            font-size: 12px;
+        }
+        .explanation {
+            background: #f8f9fa;
+            border-left: 4px solid #4361ee;
+            padding: 14px 18px;
+            border-radius: 0 8px 8px 0;
+            margin-top: 16px;
+            font-size: 14px;
+            line-height: 1.7;
+            min-height: 60px;
+        }
+        .explanation .match {
+            color: #2d6a4f;
+            font-weight: bold;
+        }
+        .explanation .no-match {
+            color: #e63946;
+        }
+        .count-display {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-top: 12px;
+            padding: 12px 16px;
+            background: #eef0ff;
+            border-radius: 8px;
+        }
+        .count-display .num {
+            font-size: 32px;
+            font-weight: 800;
+            color: #4361ee;
+        }
+        .count-display .label {
+            font-size: 14px;
+            color: #666;
+        }
+        .legend {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-top: 16px;
+            font-size: 12px;
+            color: #666;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .legend-item .box {
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+            border: 2px solid;
+        }
+        .subarray-highlight {
+            display: flex;
+            gap: 4px;
+            margin-top: 8px;
+            flex-wrap: wrap;
+        }
+        .subarray-cell {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            font-family: monospace;
+            background: #d8f3dc;
+            border: 2px solid #2d6a4f;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>📐 LC560 — 和为 K 的子数组</h1>
+    <p class="subtitle">前缀和 + HashMap 可视化 | 一步一步看算法如何工作</p>
+
+    <div class="formula-box">
+        <strong>核心公式：</strong><br>
+        子数组 [i...j] 的和 = <code>前缀和[j] - 前缀和[i-1]</code><br>
+        要找和为 k → <code>前缀和[j] - 前缀和[i-1] = k</code> → <span class="highlight">前缀和[i-1] = 前缀和[j] - k</span><br>
+        → 遍历时，每步检查 <code>map.containsKey(prefixSum − k)</code>，命中就意味着找到了一组！
+    </div>
+
+    <div class="controls">
+        <label>nums:</label>
+        <input id="inputNums" value="1,1,1" />
+        <label>k:</label>
+        <input id="inputK" value="2" style="width:60px" />
+        <button class="btn-primary" onclick="resetWithInput()">🔄 重新运行</button>
+        <button class="btn-success" onclick="runDemoPreset()">▶ 演示预设</button>
+    </div>
+
+    <div class="step-nav">
+        <button id="btnPrev" onclick="prevStep()">← 上一步</button>
+        <button id="btnNext" onclick="nextStep()">下一步 →</button>
+        <span class="step-info" id="stepInfo">步骤 0 / 0</span>
+    </div>
+
+    <div class="visual-area">
+        <div class="panel">
+            <h3>📦 数组遍历</h3>
+            <div id="arrayDisplay" class="array-display"></div>
+            <div id="prefixBar" class="prefix-bar"></div>
+            <div id="subarrayDisplay" style="margin-top:10px"></div>
+        </div>
+        <div class="panel">
+            <h3>🗺️ HashMap 状态</h3>
+            <div id="mapDisplay" class="map-display"></div>
+            <div id="countDisplay" class="count-display">
+                <span class="num" id="countNum">0</span>
+                <span class="label">个和为 k 的子数组</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="explanation" id="explanation">
+        👆 点击「下一步」开始逐步演示
+    </div>
+
+    <div class="legend">
+        <span class="legend-item"><span class="box" style="border-color:#4361ee;background:#eef0ff"></span> 当前处理</span>
+        <span class="legend-item"><span class="box" style="border-color:#2d6a4f;background:#d8f3dc"></span> 匹配成功</span>
+        <span class="legend-item"><span class="box" style="border-color:#e63946;background:#ffe5e5"></span> diff 未命中</span>
+    </div>
+</div>
+
+<script>
+    // ====== 数据 ======
+    let nums = [1, 1, 1];
+    let k = 2;
+    let steps = [];
+    let currentStep = 0;
+
+    // ====== 生成步骤数据 ======
+    function generateSteps(nums, k) {
+        const steps = [];
+        let map = { 0: 1 };
+        let prefixSum = 0;
+        let count = 0;
+
+        // 初始状态
+        steps.push({
+            type: 'init',
+            prefixSum: 0,
+            map: { ...map },
+            count: 0,
+            currentIdx: -1,
+            diff: null,
+            diffFound: false,
+            matchCount: 0,
+            explanation: '初始化 map = { 0: 1 }，表示"空数组"的前缀和为 0，出现 1 次。'
+        });
+
+        for (let i = 0; i < nums.length; i++) {
+            const num = nums[i];
+            const oldPrefixSum = prefixSum;
+            prefixSum += num;
+            const diff = prefixSum - k;
+            const diffFound = map[diff] !== undefined;
+            const matchCount = diffFound ? map[diff] : 0;
+
+            steps.push({
+                type: 'check',
+                idx: i,
+                num: num,
+                prefixSum: prefixSum,
+                oldPrefixSum: oldPrefixSum,
+                diff: diff,
+                diffFound: diffFound,
+                matchCount: matchCount,
+                mapBefore: { ...map },
+                countBefore: count,
+            });
+
+            if (diffFound) {
+                count += map[diff];
+            }
+
+            // 更新 map（已先查后记）
+            map[prefixSum] = (map[prefixSum] || 0) + 1;
+
+            steps.push({
+                type: 'update',
+                idx: i,
+                num: num,
+                prefixSum: prefixSum,
+                diff: diff,
+                diffFound: diffFound,
+                matchCount: matchCount,
+                mapAfter: { ...map },
+                count: count,
+            });
+        }
+
+        steps.push({
+            type: 'done',
+            count: count,
+            explanation: `🎉 遍历结束！共找到 ${count} 个和为 ${k} 的子数组。`
+        });
+
+        return steps;
+    }
+
+    // ====== 渲染 ======
+    function renderStep(stepIdx) {
+        const step = steps[stepIdx];
+        if (!step) return;
+
+        document.getElementById('stepInfo').textContent = `步骤 ${stepIdx} / ${steps.length - 1}`;
+        document.getElementById('btnPrev').disabled = (stepIdx === 0);
+        document.getElementById('btnNext').disabled = (stepIdx === steps.length - 1);
+
+        // 数组显示
+        renderArray(step);
+        // Map 显示
+        renderMap(step);
+        // 解释
+        renderExplanation(step);
+        // 子数组显示
+        renderSubarray(step);
+    }
+
+    function renderArray(step) {
+        const container = document.getElementById('arrayDisplay');
+        const barContainer = document.getElementById('prefixBar');
+        container.innerHTML = '';
+        barContainer.innerHTML = '';
+
+        let prefixSumDisplay = 0;
+
+        nums.forEach((num, idx) => {
+            const cell = document.createElement('div');
+            cell.className = 'array-cell';
+            if (step.type === 'init') {
+                // 初始状态，全部灰色
+            } else if (step.idx === idx) {
+                cell.classList.add('current');
+            } else if (step.idx !== undefined && idx < step.idx) {
+                cell.classList.add('active');
+            } else if (step.type === 'done') {
+                cell.classList.add('active');
+            }
+
+            const label = document.createElement('div');
+            label.className = 'index-label';
+            label.textContent = idx;
+            cell.appendChild(label);
+
+            const val = document.createTextNode(num);
+            cell.appendChild(val);
+
+            if (step.type !== 'init' && step.idx === idx) {
+                const arrow = document.createElement('div');
+                arrow.className = 'arrow';
+                arrow.textContent = '⬇ right';
+                cell.appendChild(arrow);
+            }
+
+            container.appendChild(cell);
+        });
+
+        // 前缀和进度条
+        if (step.type !== 'init') {
+            const maxVal = nums.reduce((a,b) => a + Math.abs(b), 0) * 2 || 10;
+            // 旧前缀和
+            if (step.oldPrefixSum !== undefined) {
+                const row = document.createElement('div');
+                row.className = 'prefix-row';
+                row.innerHTML = `
+                    <span class="label">旧和</span>
+                    <span class="value">${step.oldPrefixSum}</span>
+                    <div class="bar-bg"><div class="bar-fill" style="width:${Math.abs(step.oldPrefixSum)/maxVal*100}%"></div></div>
+                `;
+                barContainer.appendChild(row);
+            }
+            // 当前前缀和
+            const row2 = document.createElement('div');
+            row2.className = 'prefix-row';
+            row2.innerHTML = `
+                <span class="label" style="color:#4361ee;font-weight:700">新和</span>
+                <span class="value" style="color:#4361ee">${step.prefixSum}</span>
+                <div class="bar-bg"><div class="bar-fill" style="width:${Math.abs(step.prefixSum)/maxVal*100}%;background:linear-gradient(90deg,#4361ee,#e63946)"></div></div>
+            `;
+            barContainer.appendChild(row2);
+        } else {
+            const row = document.createElement('div');
+            row.className = 'prefix-row';
+            row.innerHTML = `
+                <span class="label">初始</span>
+                <span class="value">0</span>
+            `;
+            barContainer.appendChild(row);
+        }
+
+        // 统计信息
+        if (step.type === 'check' || step.type === 'update') {
+            const info = document.createElement('div');
+            info.style.cssText = 'margin-top:8px;font-size:13px;color:#666;';
+            info.innerHTML = `
+                <b>当前元素:</b> nums[${step.idx}] = ${step.num} &nbsp;|&nbsp;
+                <b>累加:</b> ${step.oldPrefixSum} + (${step.num}) = <b>${step.prefixSum}</b> &nbsp;|&nbsp;
+                <b>diff:</b> ${step.prefixSum} − ${k} = <b>${step.diff}</b>
+            `;
+            barContainer.appendChild(info);
+        }
+    }
+
+    function renderMap(step) {
+        const container = document.getElementById('mapDisplay');
+        container.innerHTML = '';
+
+        let mapData;
+        if (step.type === 'init') {
+            mapData = step.map;
+        } else if (step.type === 'check') {
+            mapData = step.mapBefore;
+        } else if (step.type === 'update') {
+            mapData = step.mapAfter;
+        } else {
+            mapData = {};
+        }
+
+        const entries = Object.entries(mapData);
+        if (entries.length === 0) {
+            container.innerHTML = '<div style="color:#999;padding:8px">(空)</div>';
+        } else {
+            entries.forEach(([key, val]) => {
+                const entry = document.createElement('div');
+                entry.className = 'map-entry';
+
+                // 如果是 check 步骤且 diff 命中了这个 key
+                if (step.type === 'check' && step.diffFound && Number(key) === step.diff) {
+                    entry.classList.add('highlight');
+                }
+
+                entry.innerHTML = `
+                    <span class="key">${key}</span>
+                    →
+                    <span class="val">${val}</span>
+                    <span class="meaning">${key == 0 ? '（空数组）' : `前缀和 ${key} 出现过 ${val} 次`}</span>
+                `;
+                container.appendChild(entry);
+            });
+        }
+
+        // count
+        let countVal = step.count !== undefined ? step.count : (step.countBefore || 0);
+        document.getElementById('countNum').textContent = countVal;
+    }
+
+    function renderExplanation(step) {
+        const el = document.getElementById('explanation');
+        if (step.type === 'init') {
+            el.innerHTML = `<strong>初始化</strong><br>${step.explanation}`;
+        } else if (step.type === 'check') {
+            const match = step.diffFound;
+            let html = `<strong>第 ${step.idx + 1} 步 — 检查</strong><br>`;
+            html += `prefixSum = ${step.oldPrefixSum} + ${step.num} = <b>${step.prefixSum}</b><br>`;
+            html += `diff = ${step.prefixSum} − ${k} = <b>${step.diff}</b><br>`;
+            if (match) {
+                html += `<span class="match">✅ diff = ${step.diff} 在 map 中！出现 ${step.matchCount} 次 → count +${step.matchCount}</span><br>`;
+                html += `<span style="color:#2d6a4f">找到 ${step.matchCount} 个新的和为 ${k} 的子数组！</span>`;
+            } else {
+                html += `<span class="no-match">❌ diff = ${step.diff} 不在 map 中，继续遍历</span>`;
+            }
+            el.innerHTML = html;
+        } else if (step.type === 'update') {
+            let html = `<strong>第 ${step.idx + 1} 步 — 记录</strong><br>`;
+            html += `将当前 prefixSum = ${step.prefixSum} 加入 map<br>`;
+            html += `map[${step.prefixSum}] = ${step.mapAfter[step.prefixSum]}（出现 ${step.mapAfter[step.prefixSum]} 次）<br>`;
+            html += `<b>当前累计 count = ${step.count}</b>`;
+            el.innerHTML = html;
+        } else if (step.type === 'done') {
+            el.innerHTML = `<strong style="font-size:16px">${step.explanation}</strong>`;
+        }
+    }
+
+    function renderSubarray(step) {
+        const container = document.getElementById('subarrayDisplay');
+        container.innerHTML = '';
+
+        if (step.type === 'check' && step.diffFound) {
+            // 显示找到的子数组
+            const title = document.createElement('div');
+            title.style.cssText = 'font-size:13px;font-weight:600;color:#2d6a4f;margin-bottom:6px;';
+            title.textContent = `找到 ${step.matchCount} 个和为 ${k} 的子数组：`;
+            container.appendChild(title);
+
+            // 我们不知道具体哪些子数组被找到，但从 diff 可以推断起点
+            // 显示当前匹配信息
+            const info = document.createElement('div');
+            info.style.cssText = 'font-size:13px;color:#666;';
+            info.innerHTML = `diff = ${step.diff} 在 map 中出现 ${step.matchCount} 次，每次对应一个以 ${step.idx} 结尾的子数组`;
+            container.appendChild(info);
+        }
+    }
+
+    // ====== 导航 ======
+    function nextStep() {
+        if (currentStep < steps.length - 1) {
+            currentStep++;
+            renderStep(currentStep);
+        }
+    }
+
+    function prevStep() {
+        if (currentStep > 0) {
+            currentStep--;
+            renderStep(currentStep);
+        }
+    }
+
+    // ====== 重置 ======
+    function resetWithInput() {
+        const numsStr = document.getElementById('inputNums').value;
+        const kStr = document.getElementById('inputK').value;
+        nums = numsStr.split(',').map(s => parseInt(s.trim()));
+        k = parseInt(kStr);
+        if (nums.some(isNaN) || isNaN(k)) {
+            alert('请输入有效的数字！');
+            return;
+        }
+        steps = generateSteps(nums, k);
+        currentStep = 0;
+        renderStep(currentStep);
+    }
+
+    function runDemoPreset() {
+        const presets = [
+            { nums: [1, 1, 1], k: 2 },
+            { nums: [1, 2, 3], k: 3 },
+            { nums: [-1, -1, 1], k: 0 },
+            { nums: [3, 4, 7, 2, -3, 1, 4, 2], k: 7 },
+        ];
+        const idx = Math.floor(Math.random() * presets.length);
+        const p = presets[idx];
+        document.getElementById('inputNums').value = p.nums.join(',');
+        document.getElementById('inputK').value = p.k;
+        resetWithInput();
+    }
+
+    // ====== 键盘快捷键 ======
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowRight') nextStep();
+        if (e.key === 'ArrowLeft') prevStep();
+    });
+
+    // ====== 初始化 ======
+    resetWithInput();
+</script>
+</body>
+</html>
